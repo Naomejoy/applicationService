@@ -1,0 +1,480 @@
+basePath: /api/v1
+definitions:
+  domain.Application:
+    properties:
+      code:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      description:
+        type: string
+      fileTypes:
+        items:
+          $ref: '#/definitions/domain.ApplicationUploadedFileType'
+        type: array
+      id:
+        type: integer
+      name:
+        type: string
+      statuses:
+        description: Relations
+        items:
+          $ref: '#/definitions/domain.ApplicationStatus'
+        type: array
+      updatedAt:
+        type: string
+      userId:
+        type: integer
+    type: object
+  domain.ApplicationStatus:
+    properties:
+      applicationId:
+        type: integer
+      createdAt:
+        type: string
+      id:
+        type: integer
+      status:
+        type: string
+      userId:
+        type: integer
+    type: object
+  domain.ApplicationUploadedFileType:
+    properties:
+      applicationId:
+        type: integer
+      createdAt:
+        type: string
+      fileTypeName:
+        type: string
+      id:
+        type: integer
+    type: object
+  service.AddFileTypeRequest:
+    properties:
+      fileTypeName:
+        type: string
+    required:
+    - fileTypeName
+    type: object
+  service.AddStatusRequest:
+    properties:
+      status:
+        type: string
+      userId:
+        type: integer
+    required:
+    - status
+    - userId
+    type: object
+  service.CreateApplicationRequest:
+    properties:
+      name:
+        type: string
+      userId:
+        type: integer
+    required:
+    - name
+    - userId
+    type: object
+  service.ListResponse:
+    properties:
+      data: {}
+      meta:
+        $ref: '#/definitions/service.PaginationMeta'
+    type: object
+  service.PaginationMeta:
+    properties:
+      page:
+        type: integer
+      pageSize:
+        type: integer
+      total:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  service.UpdateApplicationRequest:
+    properties:
+      code:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+    type: object
+host: localhost:8083
+info:
+  contact: {}
+  description: API for managing applications, statuses and file types
+  title: Application Service API
+  version: "1.0"
+paths:
+  /applications:
+    get:
+      description: List applications with filters, pagination and sorting
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Page size
+        in: query
+        name: pageSize
+        type: integer
+      - description: Search query
+        in: query
+        name: q
+        type: string
+      - description: User ID
+        in: query
+        name: userId
+        type: integer
+      - default: created_at
+        description: Sort column
+        in: query
+        name: sort
+        type: string
+      - default: desc
+        description: Sort order
+        in: query
+        name: order
+        type: string
+      - description: Start date YYYY-MM-DD
+        in: query
+        name: from
+        type: string
+      - description: End date YYYY-MM-DD
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.ListResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List applications
+      tags:
+      - Applications
+    post:
+      consumes:
+      - application/json
+      description: Create a new application for a user
+      parameters:
+      - description: Application payload
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateApplicationRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.Application'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new application
+      tags:
+      - Applications
+  /applications/{id}:
+    delete:
+      description: Soft delete application by ID
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete application
+      tags:
+      - Applications
+    get:
+      description: Retrieve a single application
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Application'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get application by ID
+      tags:
+      - Applications
+    put:
+      consumes:
+      - application/json
+      description: Update application by ID
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update payload
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpdateApplicationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Application'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update application
+      tags:
+      - Applications
+  /applications/{id}/file-types:
+    get:
+      description: List all file types for an application
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.ApplicationUploadedFileType'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List file types
+      tags:
+      - ApplicationFileTypes
+    post:
+      consumes:
+      - application/json
+      description: Add a new file type to an application
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: File type payload
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/service.AddFileTypeRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Add file type to an application
+      tags:
+      - ApplicationFileTypes
+  /applications/{id}/file-types/{fileTypeId}:
+    delete:
+      description: Delete a file type from an application
+      parameters:
+      - description: FileType ID
+        in: path
+        name: fileTypeId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete file type
+      tags:
+      - ApplicationFileTypes
+  /applications/{id}/status:
+    post:
+      consumes:
+      - application/json
+      description: Add a new status for an application
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Status payload
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/service.AddStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Add status to an application
+      tags:
+      - ApplicationStatus
+  /applications/{id}/statuses:
+    get:
+      description: List all statuses for an application with pagination
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Page size
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.ListResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List statuses of an application
+      tags:
+      - ApplicationStatus
+schemes:
+- http
+security:
+- ApiKeyAuth: []
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: X-API-Key
+    type: apiKey
+swagger: "2.0"
