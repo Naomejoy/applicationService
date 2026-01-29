@@ -38,35 +38,28 @@ import (
 // Apply security globally
 // @security ApiKeyAuth
 func main() {
-	// Load environment-based configuration
+
 	cfg := config.LoadConfig()
 	log.Printf("Starting Application Service on port %s", cfg.Port)
 
-	// Connect to database
 	db.ConnectDB(cfg)
 
-	// Initialize repositories
 	appRepo := repository.NewApplicationRepository(db.DB)
 	statusRepo := repository.NewApplicationStatusRepository(db.DB)
 	fileRepo := repository.NewApplicationFileTypeRepository(db.DB)
 
-	// Initialize services
 	appService := service.NewApplicationService(appRepo)
 	statusService := service.NewApplicationStatusService(statusRepo)
 	fileService := service.NewApplicationFileTypeService(fileRepo)
 
-	// Initialize handlers
 	appHandler := api.NewApplicationHandler(appService)
 	statusHandler := api.NewStatusHandler(statusService)
 	fileHandler := api.NewFileTypeHandler(fileService)
-
-	// Setup Gin
 	r := gin.New()
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
 	r.Use(middleware.LoggerMiddleware())
 
-	// IMPORTANT: Health endpoints should be BEFORE the Swagger route
 	r.GET("/healthz", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok", "message": "service is healthy"})
 	})
@@ -75,10 +68,8 @@ func main() {
 	})
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	// // Path 2: /api/v1/swagger/* (alternative)
 	// r.GET("/api/v1/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	// Path 3: Direct redirect to swagger index
 	r.GET("/docs", func(c *gin.Context) {
 		c.Redirect(http.StatusMovedPermanently, "/swagger/index.html")
 	})
@@ -93,9 +84,8 @@ func main() {
 		})
 	})
 
-	// Protected API group
 	apiKey := cfg.APIKey
-	log.Printf("API Key configured")
+
 	log.Printf("API Key configured and is : %s", cfg.APIKey)
 
 	api := r.Group("/api/v1")
@@ -126,7 +116,6 @@ func main() {
 		IdleTimeout:  60 * time.Second,
 	}
 
-	// Start server in a goroutine
 	go func() {
 		log.Printf("Server started at http://localhost:%s", cfg.Port)
 		log.Printf("Swagger UI available at http://localhost:%s/swagger/index.html", cfg.Port)

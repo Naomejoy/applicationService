@@ -9,19 +9,16 @@ import (
 	"github.com/Naomejoy/app-service/domain"
 )
 
-// ApplicationService handles business logic for Applications
 type ApplicationService struct {
 	appRepo repository.ApplicationRepository
 }
 
-// Constructor
 func NewApplicationService(appRepo repository.ApplicationRepository) *ApplicationService {
 	return &ApplicationService{
 		appRepo: appRepo,
 	}
 }
 
-// Create a new application
 func (s *ApplicationService) Create(app *domain.Application) error {
 	if app.Name == "" || app.Code == "" {
 		return errors.New("name and code are required")
@@ -29,12 +26,10 @@ func (s *ApplicationService) Create(app *domain.Application) error {
 	return s.appRepo.Create(app)
 }
 
-// Get application by ID
 func (s *ApplicationService) GetByID(id uint64) (*domain.Application, error) {
 	return s.appRepo.GetByID(id)
 }
 
-// Update application
 func (s *ApplicationService) Update(app *domain.Application) error {
 	if app.ID == 0 {
 		return errors.New("invalid application ID")
@@ -42,12 +37,10 @@ func (s *ApplicationService) Update(app *domain.Application) error {
 	return s.appRepo.Update(app)
 }
 
-// Soft delete application
 func (s *ApplicationService) Delete(id uint64) error {
 	return s.appRepo.Delete(id)
 }
 
-// List applications with pagination
 func (s *ApplicationService) List(params repository.ApplicationListParams) (*ListResponse, error) {
 	apps, total, err := s.appRepo.List(params)
 	if err != nil {
